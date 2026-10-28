@@ -42,34 +42,45 @@ class MobileSwapActivityDetailScreen extends ConsumerWidget {
       }
     }
 
-    return Scaffold(
-      backgroundColor: colors.background.window,
-      body: AppToastHost(
-        child: SafeArea(
-          child: Column(
-            children: [
-              MobileTopNav.back(
-                title: mobileSwapActivityTitle(state, intent),
-                // Pushed from activity rows -> pop; arrived via go()
-                // from the review start -> fall back to the return
-                // target (pop would be a no-op there).
-                onBack: () {
-                  if (Navigator.of(context).canPop()) {
-                    context.pop();
-                  } else {
-                    context.go(returnTarget.path);
-                  }
-                },
-              ),
-              Expanded(
-                child: SwapActivityDetailSurface(
-                  intentId: swapIntentId,
-                  returnTarget: returnTarget,
-                  autoSignZecDeposit: autoSignZecDeposit,
-                  layout: SwapActivityDetailLayout.mobile,
+    // The review start opens this screen with `go`, so system back finds
+    // nothing to pop. It must take the same path as the toolbar arrow
+    // instead of falling through to the Android exit hint.
+    return PopScope(
+      key: const ValueKey('mobile_swap_activity_detail_back_scope'),
+      canPop: Navigator.of(context).canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        context.go(returnTarget.path);
+      },
+      child: Scaffold(
+        backgroundColor: colors.background.window,
+        body: AppToastHost(
+          child: SafeArea(
+            child: Column(
+              children: [
+                MobileTopNav.back(
+                  title: mobileSwapActivityTitle(state, intent),
+                  // Pushed from activity rows -> pop; arrived via go()
+                  // from the review start -> fall back to the return
+                  // target (pop would be a no-op there).
+                  onBack: () {
+                    if (Navigator.of(context).canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(returnTarget.path);
+                    }
+                  },
                 ),
-              ),
-            ],
+                Expanded(
+                  child: SwapActivityDetailSurface(
+                    intentId: swapIntentId,
+                    returnTarget: returnTarget,
+                    autoSignZecDeposit: autoSignZecDeposit,
+                    layout: SwapActivityDetailLayout.mobile,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

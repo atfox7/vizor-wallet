@@ -460,6 +460,41 @@ void main() {
     expect(_systemNavigatorPopCallCount(platformCalls), 0);
   });
 
+  testWidgets('android root back reaches a swap status opened with go', (
+    tester,
+  ) async {
+    final platformCalls = _capturePlatformCalls(tester);
+    var handledBacks = 0;
+    // Swap review opens the status screen with `go` once the deposit is
+    // sent, so it is the whole stack. The toolbar arrow goes to the return
+    // target; system back must reach the same handler, not the exit hint.
+    final testRouter = _exitBackRouter(
+      initialLocation: '/activity/swap/intent-1?from=swap',
+      routes: [
+        _placeholderRoute('/home', 'Home route'),
+        GoRoute(
+          path: '/activity/swap/:swapId',
+          builder: (_, _) => _RouteLevelBackHandler(
+            label: 'Swap status route',
+            onBack: () => handledBacks++,
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(_app(testRouter));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Swap status route'), findsOneWidget);
+    expect(testRouter.router.canPop(), isFalse);
+
+    expect(await testRouter.dispatcher.didPopRoute(), isTrue);
+    await tester.pump();
+
+    expect(handledBacks, 1);
+    expect(find.text(MobileExitBackGuard.exitHintMessage), findsNothing);
+    expect(_systemNavigatorPopCallCount(platformCalls), 0);
+  });
+
   testWidgets('a send step that blocks back never shows the exit hint', (
     tester,
   ) async {
