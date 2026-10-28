@@ -182,11 +182,14 @@ class MobileExitBackDispatcher extends RootBackButtonDispatcher {
   /// send screen's `PopScope` is then the only thing that can send the press
   /// to its own step fallback instead of exiting the app. `/payment-links`
   /// is opened with `go` by an incoming Card link too, so it gets the same.
+  /// `/activity/swap` is opened with `go` when a swap starts from review, so
+  /// its status screen is the whole stack as well.
   static const _rootBackFlowPrefixes = [
     '/migration',
     '/send',
     '/payment-links',
     '/gift',
+    '/activity/swap',
   ];
 
   static bool _routeLayerHandlesRootBack(String location) {
